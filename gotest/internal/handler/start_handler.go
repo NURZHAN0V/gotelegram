@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"telegram-bot/internal/keyboard"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -29,6 +31,13 @@ func (h *StartHandler) Handle(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) error
 		"/info - информация о вас"
 
 	reply := tgbotapi.NewMessage(chatID, text)
+
+	// Прикрепляем инлайн-клавиатуру к сообщению
+	// reply.ReplyMarkup = keyboard.NewLanguageKeyboard()
+	// reply.ReplyMarkup = keyboard.NewMainMenuKeyboard()
+	reply.ReplyMarkup = keyboard.NewConfirmKeyboard("delete_profile")
+	bot.Send(reply)
+
 	_, err := bot.Send(reply)
 	return err
 }
