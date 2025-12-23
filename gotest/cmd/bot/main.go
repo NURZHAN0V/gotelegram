@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
@@ -57,11 +56,14 @@ func handleUpdate(
 	bot *tgbotapi.BotAPI,
 	dispatcher *handler.Dispatcher,
 	messageHandler *handler.MessageHandler,
+	callbackHandler *handler.CallbackHandler,
 	update tgbotapi.Update,
 ) {
 	// Обрабатываем callback-запросы (нажатия на инлайн-кнопки)
 	if update.CallbackQuery != nil {
-		handleCallbackQuery(bot, update.CallbackQuery)
+		if err := callbackHandler.Handle(bot, update.CallbackQuery); err != nil {
+			log.Printf("Ошибка обработки callback-запроса: %v", err)
+		}
 		return
 	}
 
@@ -86,36 +88,6 @@ func handleUpdate(
 		err := messageHandler.Handle(bot, msg)
 		if err != nil {
 			log.Printf("Ошибка обработки сообщения: %v", err)
-		}
-	}
-}
-
-// handleCallbackQuery обрабатывает нажатие на инлайн-кнопку
-func handleCallbackQuery(bot *tgbotapi.BotAPI, callback *tgbotapi.CallbackQuery) {
-	data := callback.Data
-	chatID := callback.Message.Chat.ID
-	messageID := callback.Message.MessageID
-	userID := callback.From.ID
-
-	log.Printf("Callback от пользователя %d: %s", userID, data)
-
-	// Отвечаем на callback-запрос (обязательно!)
-	// Это уберёт индикатор загрузки на кнопке
-	callbackConfig := tgbotapi.NewCallback(callback.ID, "")
-	bot.Request(callbackConfig)
-
-	// Обрабатываем данные в зависимости от префикса
-	if strings.HasPrefix(data, "delete_profile_") {
-		if data == "delete_profile_yes" {
-			// Пользователь подтвердил удаление
-			editText := "✅ Профиль удалён!"
-			edit := tgbotapi.NewEditMessageText(chatID, messageID, editText)
-			bot.Send(edit)
-		} else if data == "delete_profile_no" {
-			// Пользователь отменил удаление
-			editText := "❌ Удаление отменено."
-			edit := tgbotapi.NewEditMessageText(chatID, messageID, editText)
-			bot.Send(edit)
 		}
 	}
 }
