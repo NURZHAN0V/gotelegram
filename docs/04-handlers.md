@@ -307,7 +307,6 @@ func (d *Dispatcher) handleUnknownCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Me
     return err
 }
 ```
-```
 
 **Разбор:**
 
